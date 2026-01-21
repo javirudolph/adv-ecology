@@ -1,0 +1,291 @@
+---
+title: "Lab 1: Community Data EDA"
+subtitle: "Systematic exploration of the National Lake Assessment dataset"
+format:
+  html:
+    toc: true
+    code-fold: show
+---
+
+## Learning Objectives
+
+By the end of this lab, you will be able to:
+
+1. Download and import complex ecological datasets from public repositories
+2. Systematically assess data quality for community datasets
+3. Create diagnostic visualizations that reveal community structure
+4. Generate hypotheses about community-environment relationships
+5. Document data cleaning decisions with justifications
+
+---
+
+## Background: The National Lake Assessment
+
+The [National Lake Assessment (NLA)](https://www.epa.gov/national-aquatic-resource-surveys/nla) is a collaborative survey between EPA, states, and tribes to assess the condition of lakes across the United States. 
+
+The survey collects data on:
+
+- Water chemistry
+- Physical habitat  
+- Biological communities (zooplankton, phytoplankton, fish)
+- Algal toxins
+
+We're using **2022 NLA data** for this course.
+
+---
+
+## Part 0: Data Acquisition
+
+### Download the Data
+
+**Data portal:** https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys
+
+Navigate to **National Lakes Assessment 2022** and download:
+
+1. **Site information file** (look for `nla2022_wide_siteinfo_*.csv` or similar)
+2. **Zooplankton count data** (look for `nla2022_wide_zooplankton_count_*.csv` or similar)
+
+**Save these files to your `data/raw/` folder.** Keep the original filenames.
+
+### Document Your Download
+
+Add an entry to your `data/README.md` following the template from Lab 0.
+
+Include:
+
+- What you downloaded
+- When you downloaded it
+- The exact URL
+- Full citation
+
+---
+
+## Systematic EDA Framework
+
+Before we fit Joint Species Distribution Models, we need to understand what we're modeling. This lab walks through a systematic EDA framework - not because you don't know how to explore data, but because having a checklist prevents you from missing critical issues.
+
+Think of this as the workflow you'd use if a collaborator handed you a new dataset and said "can you analyze this?" You need to quickly but thoroughly understand what you're working with.
+
+**Your task:** Work through the phases below with the NLA 2022 data. The specific code is up to you - I'm providing the questions you should answer and the decisions you should make. Document your findings and decisions as you go.
+
+---
+
+## Phase 1: Understand Data Structure
+
+**Goal:** Know what you have before you touch it
+
+### Questions to Answer
+
+1. What is the observational unit? (sites? plots? transects?)
+2. What is the response unit? (species? functional groups?)
+3. What format is the data in? (long vs wide, presence/absence vs abundance)
+4. What metadata exists? (coordinates, dates, environmental variables)
+
+### Load and Inspect
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(here)
+
+# Load data - ADJUST FILENAMES TO MATCH WHAT YOU DOWNLOADED
+sites <- read_csv(here("data", "raw", "nla2022_wide_siteinfo.csv"))
+zoop <- read_csv(here("data", "raw", "nla2022_wide_zooplankton_count.csv"))
+```
+
+### Your Analysis
+
+```{r}
+# Dimensions
+dim(sites)
+dim(zoop)
+
+# Structure
+str(sites)
+str(zoop)
+
+# What are we working with?
+# How many sites?
+# How many species?
+# What format?
+```
+
+**Deliverable:** Write 3-4 sentences describing the dataset structure in plain English.
+
+---
+
+## Phase 2: Assess Data Quality
+
+**Goal:** Find problems before they become analytical nightmares
+
+### Questions to Answer
+
+1. Are there missing values? Where and how many?
+2. Are there suspicious values? (negatives, impossibly high counts)
+3. Is sampling effort consistent across sites?
+4. Are there data entry errors? (typos in species names, impossible dates)
+
+### Your Analysis
+
+```{r}
+# Missing data patterns
+summary(sites)
+summary(zoop)
+
+# Check for specific issues:
+# - Are there NAs?
+# - Range of abundance values
+# - Species name consistency
+# - Duplicate records?
+```
+
+**Deliverable:** A list of data quality issues found and decisions made about how to handle them. Document these as comments in your code or in a separate markdown section.
+
+---
+
+## Phase 3: Characterize the Response (Community Structure)
+
+**Goal:** Understand the biological patterns
+
+### Questions to Answer
+
+1. What's the distribution of species richness across sites?
+2. Which species are common? Which are rare?
+3. How abundant are communities overall?
+4. Are there dominant species or is diversity evenly distributed?
+
+### Your Analysis
+
+You'll likely need to reshape/transform the data depending on whether it's in long or wide format.
+
+```{r}
+# Species richness per site
+# Hint: you may need to pivot_longer if data is wide
+
+# Species prevalence (how many sites has each species?)
+
+# Total abundance patterns
+
+# Rarity: how many species found at only 1 site? 2 sites?
+```
+
+### Key Visualizations to Create
+
+1. Histogram of species richness across sites
+2. Species abundance distribution (rank-abundance curve or similar)
+3. Occurrence frequency histogram
+
+**Deliverable:** 2-3 plots with captions describing what they reveal about community structure.
+
+---
+
+## Phase 4: Explore Environmental Covariates
+
+**Goal:** Understand environmental context
+
+### Questions to Answer
+
+1. What is the range and distribution of each environmental variable?
+2. Are environmental variables correlated with each other?
+3. Are there environmental gradients we should expect to drive patterns?
+
+### Your Analysis
+
+```{r}
+# Identify key environmental variables in sites data
+
+# Univariate summaries
+
+# Pairwise correlations
+
+# Look for gradients
+```
+
+### Key Visualizations to Create
+
+1. Correlation matrix (visual)
+2. Histograms of key environmental variables
+3. Geographic map of sites (if lat/lon available)
+
+**Deliverable:** Identify 2-3 environmental variables that might be important and explain why.
+
+---
+
+## Phase 5: Link Response to Covariates
+
+**Goal:** Generate hypotheses about community-environment relationships
+
+### Questions to Answer
+
+1. Does richness vary along environmental gradients?
+2. Do particular species associate with particular environments?
+3. Are there threshold effects or nonlinear patterns?
+
+### Your Analysis
+
+```{r}
+# You'll need to join species and environmental data
+
+# Richness vs environment
+# Pick 2-3 key environmental variables
+
+# Individual species responses
+# Pick 3-5 common species and examine their environmental associations
+```
+
+### Key Visualizations to Create
+
+1. Richness vs 2-3 environmental variables
+2. Species responses to environmental gradients (small multiples)
+3. Heatmap or ordination showing community turnover
+
+**Deliverable:** Generate 3 hypotheses about community-environment relationships based on patterns you observed.
+
+---
+
+## Save Your Cleaned Data
+
+After going through all these quality checks and decisions, save a cleaned version:
+
+```{r}
+#| eval: false
+
+# Save your processed data
+write_csv(cleaned_data, here("data", "processed", "nla_2022_cleaned.csv"))
+```
+
+---
+
+## Reflection Questions
+
+1. **What surprised you?** Were there data quality issues you didn't expect?
+
+2. **How does this inform JSDMs?** Based on your EDA, what patterns would you want a Joint Species Distribution Model to capture?
+
+3. **What decisions did you make?** List 2-3 major data cleaning decisions and justify them.
+
+---
+
+## Submission
+
+Submit to Canvas:
+
+1. **Rendered HTML or PDF** of your analysis (knit this document)
+2. **Your cleaned data file** (`data/processed/nla_2022_cleaned.csv`)
+3. **Your updated `data/README.md`** with NLA data documented
+4. **(Optional) GitHub repo link** if you're using version control
+
+---
+
+## Self-Assessment
+
+Review the learning objectives. Can you:
+
+- ✅ Systematically approach a new community dataset?
+- ✅ Identify and justify data quality decisions?
+- ✅ Create visualizations that reveal community patterns?
+- ✅ Generate testable hypotheses about community-environment relationships?
+
+If you struggled with any of these, bring questions to our discussion session!

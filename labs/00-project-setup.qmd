@@ -1,0 +1,160 @@
+---
+title: "Lab 0: project setup and reproducible workflows"
+author: javirudolph
+format:
+  html:
+    toc: true
+    code-fold: show
+---
+
+## Learning Objectives
+
+By the end of this lab, you will be able to:
+
+1. Create a well-organized RStudio project with appropriate directory structure
+2. Document data provenance using standardized formats
+3. Explain why project organization matters for reproducibility
+
+---
+
+## Why This Matters
+
+You've all worked on projects where you couldn't remember where data came from 6 months later, or a collaborator couldn't run your code because paths were broken. Personally, I have worked with folks that had gold mines of data, but it was so disorganized or messy that it was hard to trust what was original data vs mistakes vs manipulation that maybe shouldn't have happened in the first place. Think of this as setting up scaffolding before building, it feels like overhead now but will save you hours of frustration later when you're writing your dissertation methods section or responding to reviewer comments.
+
+We have been talking about reproducibility in science, and ecology, for several years now. We won't delve too much into it this lab, but here are some resources:  
+
+-  [British Ecological Society's Guide to Reproducible Code](https://www.britishecologicalsociety.org/wp-content/uploads/2017/12/guide-to-reproducible-code.pdf) and in general, their [guides](https://www.britishecologicalsociety.org/content/better-science-guides/). These guides are practical and field-tested by ecologists, not abstract best practices, but real workflows that work.  
+-  [Powers & Hampton 2018](https://esajournals.onlinelibrary.wiley.com/doi/10.1002/eap.1822) 
+
+
+---
+
+## Step 1: Create Your Course Project
+
+In RStudio:
+
+1. **File -> New Project -> New Directory -> New Project**  
+2. Name it something like `jsdm-labs-yourname` or any other name  
+3. Choose a location (NOT inside another git repo if you use git)  
+4. Optional: you can create a git/github repo if you want  
+
+---
+
+## Step 2: Create Directory Structure
+
+Run this code in your new project console (you can also add these folders manually in the 'Files' pane):
+
+```{r}
+#| eval: false
+
+# Create project folders
+dir.create("data/raw", recursive = TRUE)
+dir.create("data/processed", recursive = TRUE)
+dir.create("scripts") # some people use 'R' instead, or 'notebooks'
+dir.create("figures")
+dir.create("outputs")
+```
+
+**What each folder is for:**
+
+- `data/raw/` - Original downloaded data (NEVER EDIT THESE)
+- `data/processed/` - Your cleaned data
+- `scripts/` - Your R scripts or qmd files for each lab
+- `figures/` - Saved plots
+- `outputs/` - Reports, results, etc.
+
+**The Golden Rule:** Raw data is read-only. If you need to change something, save a new version in `processed/` and document the changes and why.
+
+---
+
+## Step 3: Create Project README
+
+Create a file called `README.md` in your project root (File -> New File -> Text File, save as `README.md`):
+
+```markdown
+# JSDM Course Labs - [Your Name]
+
+Course work for Advanced Community Ecology (Spring 2025)
+
+## Project Structure
+
+- `data/` - All datasets (see data/README.md for sources)
+- `scripts/` - Analysis scripts for each lab
+- `figures/` - Generated visualizations
+- `outputs/` - Reports and results
+
+## Labs Completed
+
+- [ ] Lab 0: Project Setup
+- [ ] Lab 1: Community Data EDA
+- [ ] Lab 2: TBD
+```
+
+---
+
+## Step 4: Create Data Documentation Template 
+
+When using NLA data in publications or reports, follow the recommended [citations and acknowledgements](https://www.epa.gov/national-aquatic-resource-surveys/frequent-questions-about-data-national-aquatic-resource-surveys#NARScitation) cite as:
+
+>**Citation:** U.S. Environmental Protection Agency. [insert the year the survey report was published]. National Aquatic Resource Surveys. [insert the survey name and survey year] (data and metadata files). Available from U.S. EPA web page: https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys. Date accessed: YYYY-MM-DD.
+
+
+Create `data/README.md`:
+
+```markdown
+# Data Sources
+
+This file documents all datasets used in this project.
+
+## Template for Each Dataset:
+
+**Dataset Name:**  
+**Download Date:**  
+**Source URL:**  
+**Files Downloaded:**  
+**Citation:**  
+**Notes:**  
+
+---
+
+[Add your datasets below as you download them]
+```
+
+---
+
+## Step 5: Verify Your Setup
+
+Your project should now look like this:
+
+```
+jsdm-labs-yourname/
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── README.md
+├── scripts/
+├── figures/
+├── outputs/
+├── README.md
+└── jsdm-labs-yourname.Rproj
+```
+
+There is a neat way to check this and build these 'trees' with `fs`. Take a screenshot or list your files to confirm after you run the code below: 
+
+```{r}
+#| eval: false
+fs::dir_tree(path = ".", recurse = TRUE)
+```
+
+---
+
+
+## Self-Assessment
+
+Can you:
+
+- Explain why we separate raw and processed data?
+- Document where a dataset came from 6 months from now?
+- Share your project with a collaborator who could navigate it?
+
+
