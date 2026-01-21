@@ -1,10 +1,5 @@
 # Advanced Ecology Course: Theory and Methods
-# Focus on Joint Species Distribution Models
 
-Course materials for advanced ecology course.
+Focus on Joint Species Distribution Models. 
+
 author: javirudolph 2026
-
-
-## Data
-
-Data files or instructions are in the `data/` folder.
