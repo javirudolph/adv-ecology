@@ -5,6 +5,8 @@ format:
   html:
     toc: true
     code-fold: show
+execute: 
+  eval: false
 ---
 
 ## Learning Objectives
@@ -16,21 +18,64 @@ By the end of this lab, you will be able to:
 3. Create diagnostic visualizations that reveal community structure
 4. Generate hypotheses about community-environment relationships
 5. Document data cleaning decisions with justifications
+6. Communicate ecological patterns to collaborators across disciplines
+7. Synthesize findings across taxonomic groups to generate research questions
 
 ---
 
 ## Background: The National Lake Assessment
 
-The [National Lake Assessment (NLA)](https://www.epa.gov/national-aquatic-resource-surveys/nla) is a collaborative survey between EPA, states, and tribes to assess the condition of lakes across the United States. 
-
-The survey collects data on:
+The [National Lakes Assessment (NLA)](https://www.epa.gov/national-aquatic-resource-surveys/nla) is a collaborative survey between EPA, states, and tribes to assess the condition of lakes across the United States. The survey occurs every 5 years and collects data on:
 
 - Water chemistry
 - Physical habitat  
-- Biological communities (zooplankton, phytoplankton, fish)
+- Biological communities (zooplankton, phytoplankton, benthic macroinvertebrates)
 - Algal toxins
+- Sediment characteristics
 
-We're using **2022 NLA data** for this course.
+We're using the **2022 NLA data** for this course. You can explore summary results using the [NLA 2022 dashboard](https://nationallakesassessment.epa.gov/dashboard).
+
+---
+
+## Lab Structure: Collaborative Research Approach
+
+This course is different from traditional labs. We're not just learning JSDMs - we're actively exploring how they can reveal patterns of community assembly across trophic levels in lake ecosystems. **You are collaborators in this research, not just students following a recipe.**
+
+### How this lab works
+
+1. **You will be assigned to one taxonomic group:** Benthic macroinvertebrates, zooplankton, or phytoplankton
+2. **You become the expert** on that group's patterns in NLA lakes through systematic EDA
+3. **You conduct independent analysis** following the framework below, documenting findings for the team
+4. **We reconvene as a research group** to compare findings across groups and generate hypotheses
+
+### Why this approach?
+
+By dividing the analytical work across taxonomic groups, we can:
+
+- Cover more ecological complexity than any individual could alone
+- Compare community patterns across trophic levels  
+- Generate hypotheses about cross-trophic relationships and community assembly
+- Build toward multi-group JSDM analyses
+
+This mimics real collaborative ecology: different researchers specialize in different taxa, then synthesis happens through collaboration.
+
+### Your job
+
+**Document your work clearly.** The rest of the research team needs to understand your findings to build on them. This means:
+
+- Clear code with comments explaining decisions
+- Interpretable visualizations with captions
+- Written summaries of patterns you observe
+- Explicit statements of data quality issues and how you handled them
+
+Think of your lab submission as a technical report to collaborators, not just an assignment.
+
+### What Makes This Course Experimental
+
+As everything in this class, this is a work in progress. We (the instructors) are genuinely exploring these data alongside you. If you find resources, identify additional analytical steps we're missing, or have methodological suggestions, we welcome contributions through [GitHub Issues](https://github.com/javirudolph/adv-ecology/issues) or direct discussion.
+
+**This means some uncertainty is built in.** We'll make decisions together, document our reasoning, and learn from what emerges. That's how real ecology works.
+
 
 ---
 
@@ -40,10 +85,20 @@ We're using **2022 NLA data** for this course.
 
 **Data portal:** https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys
 
-Navigate to **National Lakes Assessment 2022** and download:
+For JSDM we need at least three things: site info, species data (counts or presence/absence), and environemntal covariates. Navigate to **National Lakes Assessment 2022**:
 
-1. **Site information file** (look for `nla2022_wide_siteinfo_*.csv` or similar)
-2. **Zooplankton count data** (look for `nla2022_wide_zooplankton_count_*.csv` or similar)
+**EVERYONE downloads:**. 
+1.  **Site information**. 
+2.  **Environmental data:**  
+   -  Physical Habitat 
+   -  Secchi 
+   -  Water Chemistry 
+   -  Landscape Data 
+
+**YOUR ASSIGNED GROUP** (download ONE of these): 
+- Group 1: **Benthic Macroinvertebrates** 
+- Group 2: **Zooplankton**   
+- Group 3: **Phytoplankton** 
 
 **Save these files to your `data/raw/` folder.** Keep the original filenames.
 
@@ -55,56 +110,74 @@ Include:
 
 - What you downloaded
 - When you downloaded it
-- The exact URL
-- Full citation
+- The URL
+- Citation
 
 ---
 
+## Your Taxonomic Group Assignment
+
+**[We'll assign these in class]**
+
+**What to focus on for your group:**
+
+**If you have Benthic Macroinvertebrates:** [info](https://www.epa.gov/national-aquatic-resource-surveys/indicators-benthic-macroinvertebrates)
+- These are bottom-dwelling invertebrates (insect larvae, worms, mollusks)
+- Key ecological role: Indicators of water quality and habitat condition
+- Questions to explore: How do benthos respond to sediment, nutrients, oxygen?
+
+**If you have Zooplankton:** [info](https://www.epa.gov/national-aquatic-resource-surveys/indicators-zooplankton)
+- These are tiny drifting animals (copepods, cladocerans, rotifers)
+- Key ecological role: Link between phytoplankton and fish
+- Questions to explore: How do zooplankton respond to nutrients, predators, lake size?
+
+**If you have Phytoplankton:**
+- These are microscopic algae
+- Key ecological role: Primary producers, base of food web
+- Questions to explore: How does phytoplankton composition vary with nutrients, other environmental variables?
+
 ## Systematic EDA Framework
 
-Before we fit Joint Species Distribution Models, we need to understand what we're modeling. This lab walks through a systematic EDA framework - not because you don't know how to explore data, but because having a checklist prevents you from missing critical issues.
+Before we fit Joint Species Distribution Models, we need to understand what we're modeling. This lab walks through a systematic EDA framework, not because you don't know how to explore data, but because having a checklist prevents you from missing critical issues. As everything in this class, this is a work in progress. 
 
 Think of this as the workflow you'd use if a collaborator handed you a new dataset and said "can you analyze this?" You need to quickly but thoroughly understand what you're working with.
 
-**Your task:** Work through the phases below with the NLA 2022 data. The specific code is up to you - I'm providing the questions you should answer and the decisions you should make. Document your findings and decisions as you go.
+**Your task:** Work through the phases below with the NLA 2022 data. The specific code is up to you. I'm providing the questions you should answer and the decisions you should make. Document your findings and decisions as you go.
 
 ---
 
 ## Phase 1: Understand Data Structure
 
-**Goal:** Know what you have before you touch it
+**Goal:** Know what you have before you manipulate it or model it
 
 ### Questions to Answer
 
-1. What is the observational unit? (sites? plots? transects?)
-2. What is the response unit? (species? functional groups?)
+1. What is the observational unit?
+2. What is the response unit?
 3. What format is the data in? (long vs wide, presence/absence vs abundance)
-4. What metadata exists? (coordinates, dates, environmental variables)
+4. What metadata exists? (coordinates, dates, environmental variables) 
+5. *How many sites do you have data for?** (Does it match the site info file?)
 
 ### Load and Inspect
 
 ```{r}
-#| label: setup
-#| message: false
 
-library(tidyverse)
-library(here)
+# Load site/environmental data (EVERYONE)
+sites <- read.csv()
 
-# Load data - ADJUST FILENAMES TO MATCH WHAT YOU DOWNLOADED
-sites <- read_csv(here("data", "raw", "nla2022_wide_siteinfo.csv"))
-zoop <- read_csv(here("data", "raw", "nla2022_wide_zooplankton_count.csv"))
+# Load YOUR taxonomic group data
+species_data <- read.csv()
+
 ```
 
 ### Your Analysis
 
 ```{r}
 # Dimensions
-dim(sites)
-dim(zoop)
+
 
 # Structure
-str(sites)
-str(zoop)
+str()
 
 # What are we working with?
 # How many sites?
@@ -132,7 +205,7 @@ str(zoop)
 ```{r}
 # Missing data patterns
 summary(sites)
-summary(zoop)
+summary(species_data)
 
 # Check for specific issues:
 # - Are there NAs?
@@ -147,32 +220,32 @@ summary(zoop)
 
 ## Phase 3: Characterize the Response (Community Structure)
 
-**Goal:** Understand the biological patterns
+**Goal:** Understand the biological patterns in your taxonomic group
 
 ### Questions to Answer
 
 1. What's the distribution of species richness across sites?
 2. Which species are common? Which are rare?
-3. How abundant are communities overall?
-4. Are there dominant species or is diversity evenly distributed?
+3. Are there dominant species or is diversity evenly distributed?
 
 ### Your Analysis
 
 You'll likely need to reshape/transform the data depending on whether it's in long or wide format.
 
 ```{r}
-# Species richness per site
-# Hint: you may need to pivot_longer if data is wide
+# Species richness per site/lake
 
 # Species prevalence (how many sites has each species?)
 
 # Total abundance patterns
+# Sum across all species per site
 
 # Rarity: how many species found at only 1 site? 2 sites?
 ```
 
 ### Key Visualizations to Create
 
+These are only suggestions 
 1. Histogram of species richness across sites
 2. Species abundance distribution (rank-abundance curve or similar)
 3. Occurrence frequency histogram
@@ -189,18 +262,27 @@ You'll likely need to reshape/transform the data depending on whether it's in lo
 
 1. What is the range and distribution of each environmental variable?
 2. Are environmental variables correlated with each other?
-3. Are there environmental gradients we should expect to drive patterns?
+3. Are there clear environmental gradients?
 
 ### Your Analysis
 
 ```{r}
-# Identify key environmental variables in sites data
+# Identify key environmental variables
+# Look at sites file - what's available?
+# Water chemistry (nutrients, pH, conductivity?)
+# Physical habitat (depth, area, temperature?)
+# Landscape (land use, watershed characteristics?)
 
-# Univariate summaries
+# Univariate summaries of key variables
+# Are they normally distributed? Skewed? Need transformation?
 
 # Pairwise correlations
+# Which variables move together?
+# This matters for JSDM covariate selection later
 
-# Look for gradients
+# Geographic patterns
+# Map sites colored by key environmental variable
+# Are there spatial patterns?
 ```
 
 ### Key Visualizations to Create
@@ -209,13 +291,16 @@ You'll likely need to reshape/transform the data depending on whether it's in lo
 2. Histograms of key environmental variables
 3. Geographic map of sites (if lat/lon available)
 
-**Deliverable:** Identify 2-3 environmental variables that might be important and explain why.
+**Deliverable:** Identify 2-3 environmental variables that might be important and explain why:
+- What you know about your group's ecology
+- Patterns you observe in the data
+- Biological mechanisms you expect
 
 ---
 
 ## Phase 5: Link Response to Covariates
 
-**Goal:** Generate hypotheses about community-environment relationships
+**Goal:** Generate hypotheses about how you taxonomic group responds to environmental variation
 
 ### Questions to Answer
 
@@ -238,8 +323,8 @@ You'll likely need to reshape/transform the data depending on whether it's in lo
 ### Key Visualizations to Create
 
 1. Richness vs 2-3 environmental variables
-2. Species responses to environmental gradients (small multiples)
-3. Heatmap or ordination showing community turnover
+2. Species responses to environmental gradients (focus on a couple of species)
+
 
 **Deliverable:** Generate 3 hypotheses about community-environment relationships based on patterns you observed.
 
@@ -268,7 +353,7 @@ write_csv(cleaned_data, here("data", "processed", "nla_2022_cleaned.csv"))
 
 ---
 
-## Submission
+## Submission - hold off on this, until we figure it out with Mathew.
 
 Submit to Canvas:
 
@@ -283,9 +368,8 @@ Submit to Canvas:
 
 Review the learning objectives. Can you:
 
-- ✅ Systematically approach a new community dataset?
-- ✅ Identify and justify data quality decisions?
-- ✅ Create visualizations that reveal community patterns?
-- ✅ Generate testable hypotheses about community-environment relationships?
+- Systematically approach a new community dataset?
+- Identify and justify data quality decisions?
+- Create visualizations that reveal community patterns?
+- Generate testable hypotheses about community-environment relationships?
 
-If you struggled with any of these, bring questions to our discussion session!

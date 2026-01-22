@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Lab 1: Community Data EDA</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="01-eda-community-data_files/libs/clipboard/clipboard.min.js"></script>
+<script src="01-eda-community-data_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="01-eda-community-data_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="01-eda-community-data_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="01-eda-community-data_files/libs/quarto-html/popper.min.js"></script>
+<script src="01-eda-community-data_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="01-eda-community-data_files/libs/quarto-html/anchor.min.js"></script>
+<link href="01-eda-community-data_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="01-eda-community-data_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="01-eda-community-data_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="01-eda-community-data_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="01-eda-community-data_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
+  <li><a href="#background-the-national-lake-assessment" id="toc-background-the-national-lake-assessment" class="nav-link" data-scroll-target="#background-the-national-lake-assessment">Background: The National Lake Assessment</a></li>
+  <li><a href="#lab-structure-collaborative-research-approach" id="toc-lab-structure-collaborative-research-approach" class="nav-link" data-scroll-target="#lab-structure-collaborative-research-approach">Lab Structure: Collaborative Research Approach</a>
+  <ul class="collapse">
+  <li><a href="#how-this-lab-works" id="toc-how-this-lab-works" class="nav-link" data-scroll-target="#how-this-lab-works">How this lab works</a></li>
+  <li><a href="#why-this-approach" id="toc-why-this-approach" class="nav-link" data-scroll-target="#why-this-approach">Why this approach?</a></li>
+  <li><a href="#your-job" id="toc-your-job" class="nav-link" data-scroll-target="#your-job">Your job</a></li>
+  <li><a href="#what-makes-this-course-experimental" id="toc-what-makes-this-course-experimental" class="nav-link" data-scroll-target="#what-makes-this-course-experimental">What Makes This Course Experimental</a></li>
+  </ul></li>
+  <li><a href="#part-0-data-acquisition" id="toc-part-0-data-acquisition" class="nav-link" data-scroll-target="#part-0-data-acquisition">Part 0: Data Acquisition</a>
+  <ul class="collapse">
+  <li><a href="#download-the-data" id="toc-download-the-data" class="nav-link" data-scroll-target="#download-the-data">Download the Data</a></li>
+  <li><a href="#document-your-download" id="toc-document-your-download" class="nav-link" data-scroll-target="#document-your-download">Document Your Download</a></li>
+  </ul></li>
+  <li><a href="#your-taxonomic-group-assignment" id="toc-your-taxonomic-group-assignment" class="nav-link" data-scroll-target="#your-taxonomic-group-assignment">Your Taxonomic Group Assignment</a></li>
+  <li><a href="#systematic-eda-framework" id="toc-systematic-eda-framework" class="nav-link" data-scroll-target="#systematic-eda-framework">Systematic EDA Framework</a></li>
+  <li><a href="#phase-1-understand-data-structure" id="toc-phase-1-understand-data-structure" class="nav-link" data-scroll-target="#phase-1-understand-data-structure">Phase 1: Understand Data Structure</a>
+  <ul class="collapse">
+  <li><a href="#questions-to-answer" id="toc-questions-to-answer" class="nav-link" data-scroll-target="#questions-to-answer">Questions to Answer</a></li>
+  <li><a href="#load-and-inspect" id="toc-load-and-inspect" class="nav-link" data-scroll-target="#load-and-inspect">Load and Inspect</a></li>
+  <li><a href="#your-analysis" id="toc-your-analysis" class="nav-link" data-scroll-target="#your-analysis">Your Analysis</a></li>
+  </ul></li>
+  <li><a href="#phase-2-assess-data-quality" id="toc-phase-2-assess-data-quality" class="nav-link" data-scroll-target="#phase-2-assess-data-quality">Phase 2: Assess Data Quality</a>
+  <ul class="collapse">
+  <li><a href="#questions-to-answer-1" id="toc-questions-to-answer-1" class="nav-link" data-scroll-target="#questions-to-answer-1">Questions to Answer</a></li>
+  <li><a href="#your-analysis-1" id="toc-your-analysis-1" class="nav-link" data-scroll-target="#your-analysis-1">Your Analysis</a></li>
+  </ul></li>
+  <li><a href="#phase-3-characterize-the-response-community-structure" id="toc-phase-3-characterize-the-response-community-structure" class="nav-link" data-scroll-target="#phase-3-characterize-the-response-community-structure">Phase 3: Characterize the Response (Community Structure)</a>
+  <ul class="collapse">
+  <li><a href="#questions-to-answer-2" id="toc-questions-to-answer-2" class="nav-link" data-scroll-target="#questions-to-answer-2">Questions to Answer</a></li>
+  <li><a href="#your-analysis-2" id="toc-your-analysis-2" class="nav-link" data-scroll-target="#your-analysis-2">Your Analysis</a></li>
+  <li><a href="#key-visualizations-to-create" id="toc-key-visualizations-to-create" class="nav-link" data-scroll-target="#key-visualizations-to-create">Key Visualizations to Create</a></li>
+  </ul></li>
+  <li><a href="#phase-4-explore-environmental-covariates" id="toc-phase-4-explore-environmental-covariates" class="nav-link" data-scroll-target="#phase-4-explore-environmental-covariates">Phase 4: Explore Environmental Covariates</a>
+  <ul class="collapse">
+  <li><a href="#questions-to-answer-3" id="toc-questions-to-answer-3" class="nav-link" data-scroll-target="#questions-to-answer-3">Questions to Answer</a></li>
+  <li><a href="#your-analysis-3" id="toc-your-analysis-3" class="nav-link" data-scroll-target="#your-analysis-3">Your Analysis</a></li>
+  <li><a href="#key-visualizations-to-create-1" id="toc-key-visualizations-to-create-1" class="nav-link" data-scroll-target="#key-visualizations-to-create-1">Key Visualizations to Create</a></li>
+  </ul></li>
+  <li><a href="#phase-5-link-response-to-covariates" id="toc-phase-5-link-response-to-covariates" class="nav-link" data-scroll-target="#phase-5-link-response-to-covariates">Phase 5: Link Response to Covariates</a>
+  <ul class="collapse">
+  <li><a href="#questions-to-answer-4" id="toc-questions-to-answer-4" class="nav-link" data-scroll-target="#questions-to-answer-4">Questions to Answer</a></li>
+  <li><a href="#your-analysis-4" id="toc-your-analysis-4" class="nav-link" data-scroll-target="#your-analysis-4">Your Analysis</a></li>
+  <li><a href="#key-visualizations-to-create-2" id="toc-key-visualizations-to-create-2" class="nav-link" data-scroll-target="#key-visualizations-to-create-2">Key Visualizations to Create</a></li>
+  </ul></li>
+  <li><a href="#save-your-cleaned-data" id="toc-save-your-cleaned-data" class="nav-link" data-scroll-target="#save-your-cleaned-data">Save Your Cleaned Data</a></li>
+  <li><a href="#reflection-questions" id="toc-reflection-questions" class="nav-link" data-scroll-target="#reflection-questions">Reflection Questions</a></li>
+  <li><a href="#submission---hold-off-on-this-until-we-figure-it-out-with-mathew." id="toc-submission---hold-off-on-this-until-we-figure-it-out-with-mathew." class="nav-link" data-scroll-target="#submission---hold-off-on-this-until-we-figure-it-out-with-mathew.">Submission - hold off on this, until we figure it out with Mathew.</a></li>
+  <li><a href="#self-assessment" id="toc-self-assessment" class="nav-link" data-scroll-target="#self-assessment">Self-Assessment</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lab 1: Community Data EDA</h1>
+<p class="subtitle lead">Systematic exploration of the National Lake Assessment dataset</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="learning-objectives" class="level2">
+<h2 class="anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
+<p>By the end of this lab, you will be able to:</p>
+<ol type="1">
+<li>Download and import complex ecological datasets from public repositories</li>
+<li>Systematically assess data quality for community datasets</li>
+<li>Create diagnostic visualizations that reveal community structure</li>
+<li>Generate hypotheses about community-environment relationships</li>
+<li>Document data cleaning decisions with justifications</li>
+<li>Communicate ecological patterns to collaborators across disciplines</li>
+<li>Synthesize findings across taxonomic groups to generate research questions</li>
+</ol>
+<hr>
+</section>
+<section id="background-the-national-lake-assessment" class="level2">
+<h2 class="anchored" data-anchor-id="background-the-national-lake-assessment">Background: The National Lake Assessment</h2>
+<p>The <a href="https://www.epa.gov/national-aquatic-resource-surveys/nla">National Lakes Assessment (NLA)</a> is a collaborative survey between EPA, states, and tribes to assess the condition of lakes across the United States. The survey occurs every 5 years and collects data on:</p>
+<ul>
+<li>Water chemistry</li>
+<li>Physical habitat<br>
+</li>
+<li>Biological communities (zooplankton, phytoplankton, benthic macroinvertebrates)</li>
+<li>Algal toxins</li>
+<li>Sediment characteristics</li>
+</ul>
+<p>We’re using the <strong>2022 NLA data</strong> for this course. You can explore summary results using the <a href="https://nationallakesassessment.epa.gov/dashboard">NLA 2022 dashboard</a>.</p>
+<hr>
+</section>
+<section id="lab-structure-collaborative-research-approach" class="level2">
+<h2 class="anchored" data-anchor-id="lab-structure-collaborative-research-approach">Lab Structure: Collaborative Research Approach</h2>
+<p>This course is different from traditional labs. We’re not just learning JSDMs - we’re actively exploring how they can reveal patterns of community assembly across trophic levels in lake ecosystems. <strong>You are collaborators in this research, not just students following a recipe.</strong></p>
+<section id="how-this-lab-works" class="level3">
+<h3 class="anchored" data-anchor-id="how-this-lab-works">How this lab works</h3>
+<ol type="1">
+<li><strong>You will be assigned to one taxonomic group:</strong> Benthic macroinvertebrates, zooplankton, or phytoplankton</li>
+<li><strong>You become the expert</strong> on that group’s patterns in NLA lakes through systematic EDA</li>
+<li><strong>You conduct independent analysis</strong> following the framework below, documenting findings for the team</li>
+<li><strong>We reconvene as a research group</strong> to compare findings across groups and generate hypotheses</li>
+</ol>
+</section>
+<section id="why-this-approach" class="level3">
+<h3 class="anchored" data-anchor-id="why-this-approach">Why this approach?</h3>
+<p>By dividing the analytical work across taxonomic groups, we can:</p>
+<ul>
+<li>Cover more ecological complexity than any individual could alone</li>
+<li>Compare community patterns across trophic levels<br>
+</li>
+<li>Generate hypotheses about cross-trophic relationships and community assembly</li>
+<li>Build toward multi-group JSDM analyses</li>
+</ul>
+<p>This mimics real collaborative ecology: different researchers specialize in different taxa, then synthesis happens through collaboration.</p>
+</section>
+<section id="your-job" class="level3">
+<h3 class="anchored" data-anchor-id="your-job">Your job</h3>
+<p><strong>Document your work clearly.</strong> The rest of the research team needs to understand your findings to build on them. This means:</p>
+<ul>
+<li>Clear code with comments explaining decisions</li>
+<li>Interpretable visualizations with captions</li>
+<li>Written summaries of patterns you observe</li>
+<li>Explicit statements of data quality issues and how you handled them</li>
+</ul>
+<p>Think of your lab submission as a technical report to collaborators, not just an assignment.</p>
+</section>
+<section id="what-makes-this-course-experimental" class="level3">
+<h3 class="anchored" data-anchor-id="what-makes-this-course-experimental">What Makes This Course Experimental</h3>
+<p>As everything in this class, this is a work in progress. We (the instructors) are genuinely exploring these data alongside you. If you find resources, identify additional analytical steps we’re missing, or have methodological suggestions, we welcome contributions through <a href="https://github.com/javirudolph/adv-ecology/issues">GitHub Issues</a> or direct discussion.</p>
+<p><strong>This means some uncertainty is built in.</strong> We’ll make decisions together, document our reasoning, and learn from what emerges. That’s how real ecology works.</p>
+<hr>
+</section>
+</section>
+<section id="part-0-data-acquisition" class="level2">
+<h2 class="anchored" data-anchor-id="part-0-data-acquisition">Part 0: Data Acquisition</h2>
+<section id="download-the-data" class="level3">
+<h3 class="anchored" data-anchor-id="download-the-data">Download the Data</h3>
+<p><strong>Data portal:</strong> https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys</p>
+<p>For JSDM we need at least three things: site info, species data (counts or presence/absence), and environemntal covariates. Navigate to <strong>National Lakes Assessment 2022</strong>:</p>
+<p><strong>EVERYONE downloads:</strong>. 1. <strong>Site information</strong>. 2. <strong>Environmental data:</strong><br>
+- Physical Habitat - Secchi - Water Chemistry - Landscape Data</p>
+<p><strong>YOUR ASSIGNED GROUP</strong> (download ONE of these): - Group 1: <strong>Benthic Macroinvertebrates</strong> - Group 2: <strong>Zooplankton</strong><br>
+- Group 3: <strong>Phytoplankton</strong></p>
+<p><strong>Save these files to your <code>data/raw/</code> folder.</strong> Keep the original filenames.</p>
+</section>
+<section id="document-your-download" class="level3">
+<h3 class="anchored" data-anchor-id="document-your-download">Document Your Download</h3>
+<p>Add an entry to your <code>data/README.md</code> following the template from Lab 0.</p>
+<p>Include:</p>
+<ul>
+<li>What you downloaded</li>
+<li>When you downloaded it</li>
+<li>The URL</li>
+<li>Citation</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="your-taxonomic-group-assignment" class="level2">
+<h2 class="anchored" data-anchor-id="your-taxonomic-group-assignment">Your Taxonomic Group Assignment</h2>
+<p><strong>[We’ll assign these in class]</strong></p>
+<p><strong>What to focus on for your group:</strong></p>
+<p><strong>If you have Benthic Macroinvertebrates:</strong> <a href="https://www.epa.gov/national-aquatic-resource-surveys/indicators-benthic-macroinvertebrates">info</a> - These are bottom-dwelling invertebrates (insect larvae, worms, mollusks) - Key ecological role: Indicators of water quality and habitat condition - Questions to explore: How do benthos respond to sediment, nutrients, oxygen?</p>
+<p><strong>If you have Zooplankton:</strong> <a href="https://www.epa.gov/national-aquatic-resource-surveys/indicators-zooplankton">info</a> - These are tiny drifting animals (copepods, cladocerans, rotifers) - Key ecological role: Link between phytoplankton and fish - Questions to explore: How do zooplankton respond to nutrients, predators, lake size?</p>
+<p><strong>If you have Phytoplankton:</strong> - These are microscopic algae - Key ecological role: Primary producers, base of food web - Questions to explore: How does phytoplankton composition vary with nutrients, other environmental variables?</p>
+</section>
+<section id="systematic-eda-framework" class="level2">
+<h2 class="anchored" data-anchor-id="systematic-eda-framework">Systematic EDA Framework</h2>
+<p>Before we fit Joint Species Distribution Models, we need to understand what we’re modeling. This lab walks through a systematic EDA framework, not because you don’t know how to explore data, but because having a checklist prevents you from missing critical issues. As everything in this class, this is a work in progress.</p>
+<p>Think of this as the workflow you’d use if a collaborator handed you a new dataset and said “can you analyze this?” You need to quickly but thoroughly understand what you’re working with.</p>
+<p><strong>Your task:</strong> Work through the phases below with the NLA 2022 data. The specific code is up to you. I’m providing the questions you should answer and the decisions you should make. Document your findings and decisions as you go.</p>
+<hr>
+</section>
+<section id="phase-1-understand-data-structure" class="level2">
+<h2 class="anchored" data-anchor-id="phase-1-understand-data-structure">Phase 1: Understand Data Structure</h2>
+<p><strong>Goal:</strong> Know what you have before you manipulate it or model it</p>
+<section id="questions-to-answer" class="level3">
+<h3 class="anchored" data-anchor-id="questions-to-answer">Questions to Answer</h3>
+<ol type="1">
+<li>What is the observational unit?</li>
+<li>What is the response unit?</li>
+<li>What format is the data in? (long vs wide, presence/absence vs abundance)</li>
+<li>What metadata exists? (coordinates, dates, environmental variables)</li>
+<li>*How many sites do you have data for?** (Does it match the site info file?)</li>
+</ol>
+</section>
+<section id="load-and-inspect" class="level3">
+<h3 class="anchored" data-anchor-id="load-and-inspect">Load and Inspect</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Load data - ADJUST FILENAMES TO MATCH WHAT YOU DOWNLOADED</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>sites <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"raw"</span>, <span class="st">"nla2022_wide_siteinfo.csv"</span>))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>zoop <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"raw"</span>, <span class="st">"nla2022_wide_zooplankton_count.csv"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="your-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="your-analysis">Your Analysis</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dimensions</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(sites)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(zoop)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Structure</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(sites)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(zoop)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># What are we working with?</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># How many sites?</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># How many species?</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># What format?</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p><strong>Deliverable:</strong> Write 3-4 sentences describing the dataset structure in plain English.</p>
+<hr>
+</section>
+</section>
+<section id="phase-2-assess-data-quality" class="level2">
+<h2 class="anchored" data-anchor-id="phase-2-assess-data-quality">Phase 2: Assess Data Quality</h2>
+<p><strong>Goal:</strong> Find problems before they become analytical nightmares</p>
+<section id="questions-to-answer-1" class="level3">
+<h3 class="anchored" data-anchor-id="questions-to-answer-1">Questions to Answer</h3>
+<ol type="1">
+<li>Are there missing values? Where and how many?</li>
+<li>Are there suspicious values? (negatives, impossibly high counts)</li>
+<li>Is sampling effort consistent across sites?</li>
+<li>Are there data entry errors? (typos in species names, impossible dates)</li>
+</ol>
+</section>
+<section id="your-analysis-1" class="level3">
+<h3 class="anchored" data-anchor-id="your-analysis-1">Your Analysis</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Missing data patterns</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sites)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(zoop)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for specific issues:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># - Are there NAs?</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># - Range of abundance values</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># - Species name consistency</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># - Duplicate records?</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p><strong>Deliverable:</strong> A list of data quality issues found and decisions made about how to handle them. Document these as comments in your code or in a separate markdown section.</p>
+<hr>
+</section>
+</section>
+<section id="phase-3-characterize-the-response-community-structure" class="level2">
+<h2 class="anchored" data-anchor-id="phase-3-characterize-the-response-community-structure">Phase 3: Characterize the Response (Community Structure)</h2>
+<p><strong>Goal:</strong> Understand the biological patterns</p>
+<section id="questions-to-answer-2" class="level3">
+<h3 class="anchored" data-anchor-id="questions-to-answer-2">Questions to Answer</h3>
+<ol type="1">
+<li>What’s the distribution of species richness across sites?</li>
+<li>Which species are common? Which are rare?</li>
+<li>How abundant are communities overall?</li>
+<li>Are there dominant species or is diversity evenly distributed?</li>
+</ol>
+</section>
+<section id="your-analysis-2" class="level3">
+<h3 class="anchored" data-anchor-id="your-analysis-2">Your Analysis</h3>
+<p>You’ll likely need to reshape/transform the data depending on whether it’s in long or wide format.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Species richness per site</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Hint: you may need to pivot_longer if data is wide</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Species prevalence (how many sites has each species?)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Total abundance patterns</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Rarity: how many species found at only 1 site? 2 sites?</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="key-visualizations-to-create" class="level3">
+<h3 class="anchored" data-anchor-id="key-visualizations-to-create">Key Visualizations to Create</h3>
+<ol type="1">
+<li>Histogram of species richness across sites</li>
+<li>Species abundance distribution (rank-abundance curve or similar)</li>
+<li>Occurrence frequency histogram</li>
+</ol>
+<p><strong>Deliverable:</strong> 2-3 plots with captions describing what they reveal about community structure.</p>
+<hr>
+</section>
+</section>
+<section id="phase-4-explore-environmental-covariates" class="level2">
+<h2 class="anchored" data-anchor-id="phase-4-explore-environmental-covariates">Phase 4: Explore Environmental Covariates</h2>
+<p><strong>Goal:</strong> Understand environmental context</p>
+<section id="questions-to-answer-3" class="level3">
+<h3 class="anchored" data-anchor-id="questions-to-answer-3">Questions to Answer</h3>
+<ol type="1">
+<li>What is the range and distribution of each environmental variable?</li>
+<li>Are environmental variables correlated with each other?</li>
+<li>Are there environmental gradients we should expect to drive patterns?</li>
+</ol>
+</section>
+<section id="your-analysis-3" class="level3">
+<h3 class="anchored" data-anchor-id="your-analysis-3">Your Analysis</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify key environmental variables in sites data</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Univariate summaries</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Pairwise correlations</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Look for gradients</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="key-visualizations-to-create-1" class="level3">
+<h3 class="anchored" data-anchor-id="key-visualizations-to-create-1">Key Visualizations to Create</h3>
+<ol type="1">
+<li>Correlation matrix (visual)</li>
+<li>Histograms of key environmental variables</li>
+<li>Geographic map of sites (if lat/lon available)</li>
+</ol>
+<p><strong>Deliverable:</strong> Identify 2-3 environmental variables that might be important and explain why.</p>
+<hr>
+</section>
+</section>
+<section id="phase-5-link-response-to-covariates" class="level2">
+<h2 class="anchored" data-anchor-id="phase-5-link-response-to-covariates">Phase 5: Link Response to Covariates</h2>
+<p><strong>Goal:</strong> Generate hypotheses about community-environment relationships</p>
+<section id="questions-to-answer-4" class="level3">
+<h3 class="anchored" data-anchor-id="questions-to-answer-4">Questions to Answer</h3>
+<ol type="1">
+<li>Does richness vary along environmental gradients?</li>
+<li>Do particular species associate with particular environments?</li>
+<li>Are there threshold effects or nonlinear patterns?</li>
+</ol>
+</section>
+<section id="your-analysis-4" class="level3">
+<h3 class="anchored" data-anchor-id="your-analysis-4">Your Analysis</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># You'll need to join species and environmental data</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Richness vs environment</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Pick 2-3 key environmental variables</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Individual species responses</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Pick 3-5 common species and examine their environmental associations</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="key-visualizations-to-create-2" class="level3">
+<h3 class="anchored" data-anchor-id="key-visualizations-to-create-2">Key Visualizations to Create</h3>
+<ol type="1">
+<li>Richness vs 2-3 environmental variables</li>
+<li>Species responses to environmental gradients (small multiples)</li>
+<li>Heatmap or ordination showing community turnover</li>
+</ol>
+<p><strong>Deliverable:</strong> Generate 3 hypotheses about community-environment relationships based on patterns you observed.</p>
+<hr>
+</section>
+</section>
+<section id="save-your-cleaned-data" class="level2">
+<h2 class="anchored" data-anchor-id="save-your-cleaned-data">Save Your Cleaned Data</h2>
+<p>After going through all these quality checks and decisions, save a cleaned version:</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save your processed data</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(cleaned_data, <span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"processed"</span>, <span class="st">"nla_2022_cleaned.csv"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<hr>
+</section>
+<section id="reflection-questions" class="level2">
+<h2 class="anchored" data-anchor-id="reflection-questions">Reflection Questions</h2>
+<ol type="1">
+<li><p><strong>What surprised you?</strong> Were there data quality issues you didn’t expect?</p></li>
+<li><p><strong>How does this inform JSDMs?</strong> Based on your EDA, what patterns would you want a Joint Species Distribution Model to capture?</p></li>
+<li><p><strong>What decisions did you make?</strong> List 2-3 major data cleaning decisions and justify them.</p></li>
+</ol>
+<hr>
+</section>
+<section id="submission---hold-off-on-this-until-we-figure-it-out-with-mathew." class="level2">
+<h2 class="anchored" data-anchor-id="submission---hold-off-on-this-until-we-figure-it-out-with-mathew.">Submission - hold off on this, until we figure it out with Mathew.</h2>
+<p>Submit to Canvas:</p>
+<ol type="1">
+<li><strong>Rendered HTML or PDF</strong> of your analysis (knit this document)</li>
+<li><strong>Your cleaned data file</strong> (<code>data/processed/nla_2022_cleaned.csv</code>)</li>
+<li><strong>Your updated <code>data/README.md</code></strong> with NLA data documented</li>
+<li><strong>(Optional) GitHub repo link</strong> if you’re using version control</li>
+</ol>
+<hr>
+</section>
+<section id="self-assessment" class="level2">
+<h2 class="anchored" data-anchor-id="self-assessment">Self-Assessment</h2>
+<p>Review the learning objectives. Can you:</p>
+<ul>
+<li>Systematically approach a new community dataset?</li>
+<li>Identify and justify data quality decisions?</li>
+<li>Create visualizations that reveal community patterns?</li>
+<li>Generate testable hypotheses about community-environment relationships?</li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
