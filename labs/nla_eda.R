@@ -5,7 +5,8 @@
 
 # Load packages ----
 library(tidyverse)
-library(sf)           
+library(sf)
+library(maps)
 library(corrplot)     
 library(GGally)       
 library(patchwork)    
@@ -43,7 +44,7 @@ phyto <- read.csv("data/raw/nla2022_phytoplanktoncount_wide.csv")
 
 
 # Check dimensions
-dim(sites)
+dim(sites); glimpse(sites)
 dim(basins)
 dim(landscape)
 
@@ -175,6 +176,7 @@ env_data <- sites %>%
             by = "SITE_ID")
 
 dim(env_data)
+glimpse(env_data)
 
 # How many sites have complete nutrient data?
 complete_sites <- env_data %>%
@@ -222,6 +224,129 @@ p_nutrients <- env_data %>%
   theme_minimal()
 
 p_nutrients
+
+# Select all continuous environmental variables
+# (excluding IDs, categorical variables, and coordinates)
+continuous_vars <- env_data %>%
+  select(
+    # Physical characteristics
+    ELEVATION, AREA_HA, WSAREASQKM, INDEX_SITE_DEPTH, SECCHI_DEPTH,
+    # Water chemistry
+    NTL_RESULT, PTL_RESULT, CHLA_RESULT, NITRATE_NITRITE_N_RESULT, 
+    AMMONIA_N_RESULT, PH_RESULT, COND_RESULT, DOC_RESULT, 
+    TURB_RESULT, ANC_RESULT,
+    # Landscape variables
+    PCTCROP2021, PCTURBHI2021, PCTDECID2021,
+    # Climate
+    TMEAN9120, PRECIP9120,
+    # Nutrient sources
+    FERT, MANURE
+  )
+
+# Create histograms for all variables
+p_all_env <- continuous_vars %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) +
+  facet_wrap(~variable, scales = "free", ncol = 4) +
+  labs(title = "Distribution of Environmental Variables",
+       x = "Value",
+       y = "Count") +
+  theme_minimal() +
+  theme(strip.text = element_text(size = 8))
+
+p_all_env
+
+# The water chemistry is right-skewed so try log-scale version
+p_all_env_log <- continuous_vars %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+  filter(value > 0) %>%  # Remove zeros for log transformation
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) +
+  scale_x_log10() +
+  facet_wrap(~variable, scales = "free", ncol = 4) +
+  labs(title = "Distribution of Environmental Variables (log scale)",
+       x = "Value (log scale)",
+       y = "Count") +
+  theme_minimal() +
+  theme(strip.text = element_text(size = 8))
+
+p_all_env_log
+## 8.1 Assess variation -----------
+# Summary statistics to assess variation
+variation_summary <- continuous_vars %>%
+  summarise(across(everything(), 
+                   list(n = ~sum(!is.na(.)),
+                        mean = ~mean(., na.rm = TRUE),
+                        sd = ~sd(., na.rm = TRUE),
+                        # Coefficient of variation
+                        cv = ~sd(., na.rm = TRUE) / mean(., na.rm = TRUE),
+                        min = ~min(., na.rm = TRUE),
+                        max = ~max(., na.rm = TRUE)),
+                   .names = "{.col}_{.fn}")) %>%
+  pivot_longer(everything(), 
+               names_to = c("variable", "statistic"), 
+               names_sep = "_(?=[^_]+$)",
+               values_to = "value") %>%
+  pivot_wider(names_from = statistic, values_from = value) %>%
+  arrange(desc(cv))
+
+variation_summary
+
+## 8.2 Map -------------------
+
+# Get US state boundaries
+us_states <- map_data("state")
+
+# Create base map with sites
+p_map_base <- ggplot() +
+  geom_polygon(data = us_states, 
+               aes(x = long, y = lat, group = group),
+               fill = "gray95", color = "gray60", linewidth = 0.3) +
+  geom_point(data = env_data,
+             aes(x = LON_DD83, y = LAT_DD83),
+             color = "steelblue", size = 1.5, alpha = 0.6) +
+  coord_fixed(1.3) +  # Aspect ratio for US
+  theme_minimal() +
+  labs(title = "NLA 2022 Sampling Sites",
+       x = "Longitude", y = "Latitude")
+
+p_map_base
+
+# Map colored by a key environmental gradient (e.g., total nitrogen)
+p_map_nitrogen <- ggplot() +
+  geom_polygon(data = us_states, 
+               aes(x = long, y = lat, group = group),
+               fill = "gray95", color = "gray60", linewidth = 0.3) +
+  geom_point(data = env_data %>% filter(!is.na(NTL_RESULT)),
+             aes(x = LON_DD83, y = LAT_DD83, color = log10(NTL_RESULT)),
+             size = 2, alpha = 0.7) +
+  scale_color_viridis_c(option = "viridis", name = "log10(NTL)") +
+  coord_fixed(1.3) +
+  theme_minimal() +
+  labs(title = "Total Nitrogen Gradient Across US Lakes",
+       x = "Longitude", y = "Latitude")
+
+p_map_nitrogen
+
+# Map by ecoregion (categorical)
+p_map_ecoregion <- ggplot() +
+  geom_polygon(data = us_states, 
+               aes(x = long, y = lat, group = group),
+               fill = "gray95", color = "gray60", linewidth = 0.3) +
+  geom_point(data = env_data %>% filter(!is.na(AG_ECO9)),
+             aes(x = LON_DD83, y = LAT_DD83, color = AG_ECO9),
+             size = 1.5, alpha = 0.7) +
+  coord_fixed(1.3) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  labs(title = "Sampling Sites by Ecoregion",
+       x = "Longitude", y = "Latitude",
+       color = "Ecoregion")
+
+p_map_ecoregion
+
+
 
 
 #  PART 9: EXPLORE ZOOPLANKTON COMMUNITY ----------------------------------
@@ -350,8 +475,7 @@ phyto_prevalence <- phyto_v1 %>%
   summarize(n_sites = n_distinct(SITE_ID),
             mean_biovolume = mean(BIOVOLUME, na.rm = TRUE),
             .groups = "drop") %>%
-  arrange(desc(n_sites)) %>%
-  head(10)
+  arrange(desc(n_sites))
 
 # Visualizations
 p_phyto_rich <- ggplot(phyto_richness, aes(x = richness)) +
@@ -374,10 +498,16 @@ p_phyto_groups <- ggplot(phyto_groups, aes(x = reorder(ALGAL_GROUP, n_sites),
 
 p_phyto_groups
 
+## 11.1 Focus phyto ------------------
+
+# Checking for the two species that we might focus on first
+# FRAGILARIA 
+phyto_prevalence %>% filter(str_detect(TARGET_TAXON, "FRAGI"))
+# ASTERIONELLA
+phyto_prevalence %>% filter(str_detect(TARGET_TAXON, "ASTER"))
+
 
 # PART 12: COMPARE RICHNESS ACROSS TROPHIC LEVELS -------------------------
-
-
 
 # Combine richness data
 richness_combined <- zoop_richness %>%
@@ -396,11 +526,9 @@ richness_complete <- richness_combined %>%
 nrow(richness_complete)
 
 # Correlation between groups
-if(nrow(richness_complete) > 0) {
-  cor_richness <- cor(richness_complete %>% select(-SITE_ID), 
-                      use = "complete.obs")
-  round(cor_richness, 3)
-}
+cor_richness <- cor(richness_complete %>% select(-SITE_ID), 
+                    use = "complete.obs")
+round(cor_richness, 3)
 
 # Visualize richness relationships
 p_rich_compare <- richness_complete %>%
@@ -421,8 +549,6 @@ p_rich_compare
 
 
 # PART 13: LINK COMMUNITIES TO ENVIRONMENT --------------------------------
-
-
 
 # Combine richness with environmental data
 zoo_env <- zoop_richness %>%
@@ -464,6 +590,8 @@ p_phyto_nutrients <- phyto_env %>%
   theme_minimal()
 
 p_phyto_nutrients
+
+
 
 
 # PART 14: CREATE SITE × SPECIES MATRICES FOR JSDM ------------------------
